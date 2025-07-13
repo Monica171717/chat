@@ -6,7 +6,6 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# Prende la chiave API da variabili d'ambiente (Railway)
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 @app.route("/", methods=["GET"])
@@ -46,14 +45,8 @@ def chat():
     data = {
         "model": "openai/gpt-3.5-turbo-16k",
         "messages": [
-            {
-                "role": "system",
-                "content": "Rispondi come Monica, una ragazza dolce, sensuale e ironica. Usa un tono coinvolgente ma rispettoso, e rispondi sempre in italiano."
-            },
-            {
-                "role": "user",
-                "content": user_message
-            }
+            {"role": "system", "content": "Rispondi come Monica, una ragazza dolce, sensuale e ironica. Usa un tono coinvolgente ma rispettoso, sempre in italiano."},
+            {"role": "user", "content": user_message}
         ]
     }
 
