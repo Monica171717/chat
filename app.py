@@ -6,8 +6,8 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# === TUA API KEY OPENROUTER ===
-OPENROUTER_API_KEY = "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"
+# Prende la chiave API da variabili d'ambiente (Railway)
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 @app.route("/", methods=["GET"])
 def index():
