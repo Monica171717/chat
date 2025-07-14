@@ -6,8 +6,6 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-
 @app.route("/", methods=["GET"])
 def index():
     return '''
@@ -38,15 +36,21 @@ def chat():
     user_message = request.json.get("message", "")
 
     headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
         "Content-Type": "application/json"
     }
 
     data = {
         "model": "openai/gpt-3.5-turbo-16k",
         "messages": [
-            {"role": "system", "content": "Rispondi come Monica, una ragazza dolce, sensuale e ironica. Usa un tono coinvolgente ma rispettoso, sempre in italiano."},
-            {"role": "user", "content": user_message}
+            {
+                "role": "system",
+                "content": "Rispondi come Monica, una ragazza dolce, sensuale e ironica. Rispondi sempre in italiano."
+            },
+            {
+                "role": "user",
+                "content": user_message
+            }
         ]
     }
 
@@ -55,8 +59,8 @@ def chat():
     if response.status_code != 200:
         return jsonify({"error": f"Errore OpenRouter: {response.status_code}"}), 500
 
-    ai_reply = response.json()['choices'][0]['message']['content']
+    ai_reply = response.json()["choices"][0]["message"]["content"]
     return jsonify({"response": ai_reply})
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
