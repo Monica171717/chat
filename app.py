@@ -1,10 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import requests
+import openai
 import os
 
 app = Flask(__name__)
 CORS(app)
+
+# === TUA API KEY OPENAI ===
+openai.api_key = "sk-INSERISCI-LA-TUA-KEY-QUI"
 
 @app.route("/", methods=["GET"])
 def index():
@@ -14,53 +17,26 @@ def index():
             <textarea name="message" rows="4" cols="50"></textarea><br>
             <input type="submit" value="Invia">
         </form>
-        <div id="risposta"></div>
-        <script>
-        const form = document.querySelector('form');
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const msg = form.message.value;
-            const response = await fetch("/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: msg })
-            });
-            const data = await response.json();
-            document.getElementById("risposta").innerHTML = "<p><strong>Monica:</strong> " + data.response + "</p>";
-        });
-        </script>
     '''
 
 @app.route("/", methods=["POST"])
 def chat():
-    user_message = request.json.get("message", "")
+    try:
+        user_message = request.json.get("message", "")
 
-    headers = {
-        "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
-        "Content-Type": "application/json"
-    }
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo-16k",
+            messages=[
+                {"role": "system", "content": "Rispondi come Monica, una ragazza sensuale, dolce e ironica, in italiano."},
+                {"role": "user", "content": user_message}
+            ]
+        )
 
-    data = {
-        "model": "openai/gpt-3.5-turbo-16k",
-        "messages": [
-            {
-                "role": "system",
-                "content": "Rispondi come Monica, una ragazza dolce, sensuale e ironica. Rispondi sempre in italiano."
-            },
-            {
-                "role": "user",
-                "content": user_message
-            }
-        ]
-    }
+        ai_reply = response["choices"][0]["message"]["content"]
+        return jsonify({"response": ai_reply})
 
-    response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-    if response.status_code != 200:
-        return jsonify({"error": f"Errore OpenRouter: {response.status_code}"}), 500
-
-    ai_reply = response.json()["choices"][0]["message"]["content"]
-    return jsonify({"response": ai_reply})
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)
